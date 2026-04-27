@@ -1,21 +1,24 @@
 package com.biblioteca.qs.Livro;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/livros")
-@RequiredArgsConstructor
+@RequestMapping("/livros") 
 public class LivroController {
-    private LivroRepository livroRepository;
-    LivroService livroService;
+
+    @Autowired
+    private LivroRepository repository;
+
     @GetMapping
-    public ResponseEntity<List<Livro>> getAllLivros(){
-        return ResponseEntity.ok(this.livroService.findAll());
+    public List<Livro> listarTodos() {
+        return repository.findAll();
+    }
+
+    @PostMapping 
+    public ResponseEntity<Livro> cadastrar(@RequestBody Livro livro) {
+        return ResponseEntity.ok(repository.save(livro));
     }
 }

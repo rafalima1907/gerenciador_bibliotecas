@@ -26,15 +26,20 @@ class LivroControllerIT {
 
     @Test
     void deveCadastrarLivroViaEndpoint() {
+        
         Livro livro = Livro.builder()
-                .titulo("Teste de Cobertura")
-                .autor("Gemini")
+                .titulo("Teste de Cobertura Final")
+                .autor("José Carlos")
                 .isbn("987654321")
                 .build();
 
+        
         ResponseEntity<Livro> response = restTemplate.postForEntity("/livros", livro, Livro.class);
 
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotNull();
+        assertThat(response.getBody().getTitulo()).isEqualTo("Teste de Cobertura Final");
     }
 }

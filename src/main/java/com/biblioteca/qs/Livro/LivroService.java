@@ -1,7 +1,5 @@
-package com.biblioteca.qs.service;
+package com.biblioteca.qs.Livro;
 
-import com.biblioteca.qs.model.Livro;
-import com.biblioteca.qs.repository.LivroRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

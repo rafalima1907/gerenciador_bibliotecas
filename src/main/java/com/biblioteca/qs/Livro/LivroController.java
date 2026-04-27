@@ -1,8 +1,5 @@
-package com.biblioteca.qs.controller;
+package com.biblioteca.qs.Livro;
 
-import com.biblioteca.qs.model.Livro;
-import com.biblioteca.qs.repository.LivroRepository;
-import com.biblioteca.qs.service.LivroService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

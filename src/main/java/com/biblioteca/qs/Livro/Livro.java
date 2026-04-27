@@ -1,4 +1,4 @@
-package com.biblioteca.qs.model;
+package com.biblioteca.qs.Livro;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

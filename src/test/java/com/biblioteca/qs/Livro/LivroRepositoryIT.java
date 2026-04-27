@@ -1,7 +1,5 @@
 package com.biblioteca.qs.Livro;
 
-import com.biblioteca.qs.model.Livro;
-import com.biblioteca.qs.repository.LivroRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

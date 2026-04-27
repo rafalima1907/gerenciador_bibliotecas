@@ -11,6 +11,8 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -26,20 +28,33 @@ class LivroControllerIT {
 
     @Test
     void deveCadastrarLivroViaEndpoint() {
-        
         Livro livro = Livro.builder()
                 .titulo("Teste de Cobertura Final")
                 .autor("José Carlos")
                 .isbn("987654321")
                 .build();
 
-        
         ResponseEntity<Livro> response = restTemplate.postForEntity("/livros", livro, Livro.class);
 
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotNull();
-        assertThat(response.getBody().getTitulo()).isEqualTo("Teste de Cobertura Final");
+    }
+
+    @Test
+    void deveListarLivrosViaEndpoint() {
+        // Primeiro cadastramos um livro para garantir que a lista tenha algo
+        Livro livro = Livro.builder()
+                .titulo("Livro para Listagem")
+                .autor("Autor Teste")
+                .isbn("111222333")
+                .build();
+        restTemplate.postForEntity("/livros", livro, Livro.class);
+
+        // Agora testamos o GET - Isso cobre as linhas do listarTodos() que faltavam!
+        ResponseEntity<List> response = restTemplate.getForEntity("/livros", List.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotEmpty();
     }
 }

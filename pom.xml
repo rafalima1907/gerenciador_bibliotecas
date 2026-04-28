@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.3</version>
-        <relativePath/>
+        <relativePath/> 
     </parent>
-
     <groupId>br.com.senac</groupId>
     <artifactId>gerenciador_bibliotecas</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -38,32 +35,27 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- TESTES -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>mongodb</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-testcontainers</artifactId>
@@ -80,8 +72,6 @@
 
     <build>
         <plugins>
-
-            <!-- COMPILER -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -96,7 +86,6 @@
                 </configuration>
             </plugin>
 
-            <!-- FAILSAFE (Integration Tests) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -110,48 +99,30 @@
                 </executions>
             </plugin>
 
-            <!-- SPRING BOOT -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- JACOCO (CORRIGIDO) -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
                 <executions>
-
-                    <!-- Unit Tests -->
                     <execution>
-                        <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-
-                    <!-- Integration Tests -->
-                    <execution>
-                        <id>prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-
-                    <!-- Report AGREGADO -->
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
                         <goals>
-                            <goal>report-aggregate</goal>
+                            <goal>report</goal>
                         </goals>
                     </execution>
-
-                    <!-- CHECK (AGORA CORRETO) -->
                     <execution>
                         <id>check-coverage</id>
-                        <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -170,11 +141,8 @@
                             </rules>
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
-
         </plugins>
     </build>
-
 </project>

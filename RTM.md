@@ -1,14 +1,53 @@
-# Matriz de Rastreabilidade de Requisitos (RTM)
+## 📊 Diagramas de Sequência UML
 
-| ID | Requisito Funcional | Classe de Teste | Tipo de Teste | Técnica | Status |
-|:---|:---|:---|:---|:---|:---|
-| **RF01** | Cadastro de Livros | `LivroRepositoryIT` | Integração (Testcontainers) | Caixa Branca | ✅ Passou |
-| **RF02** | Listagem de Livros | `LivroControllerIT` | E2E / Controller | Caixa Preta | ✅ Passou |
-| **RF03** | Cadastro de Usuário | `UsuarioRepositoryIT` | Integração (Testcontainers) | Caixa Branca | ✅ Passou |
-| **RF04** | Validação de E-mail Único | `UsuarioServiceIT` | Integração (Sem Mock) | Caixa Branca | ✅ Passou |
-| **RF05** | Endpoint de Usuários | `UsuarioControllerIT` | E2E / Controller | Caixa Preta | ✅ Passou |
-| **RF06** | Autenticação de Usuário | `AuthControllerTest` | E2E / Controller | Caixa Preta | ✅ Passou |
-| **RF07** | Busca de ISBN (API Externa) | `ExternalApiVCRTest` | Integração (VCR) | Caixa Preta | ✅ Passou |
+### 1. Cadastro com Persistência Real (RF01/RF03)
+*Este diagrama representa os testes que utilizam Testcontainers para validar o banco de dados.*
 
----
-*Nota: Cobertura de código atingiu a meta de **80%** (medida pelo JaCoCo) através da implementação dos testes de Controller (Caixa Preta) e Services (Caixa Branca), utilizando instâncias reais via Testcontainers.*
+```mermaid
+sequenceDiagram
+    participant T as Teste (IT)
+    participant C as Controller
+    participant S as Service
+    participant R as Repository
+    participant DB as MongoDB (Container)
+
+    T->>C: POST /endpoint (JSON)
+    C->>S: cadastrar()
+    S->>R: save()
+    R->>DB: Persistência no Docker
+    DB-->>R: Sucesso
+    R-->>S: Objeto Salvo
+    S-->>C: Objeto Salvo
+    C-->>T: 201 Created
+2. Validação de Regra de Negócio (RF04 - Caixa Branca)
+Este diagrama mostra a lógica do UsuarioServiceIT barrando e-mails duplicados.
+
+Snippet de código
+sequenceDiagram
+    participant T as Teste (Caixa Branca)
+    participant S as UsuarioService
+    participant R as UsuarioRepository
+    participant DB as MongoDB
+
+    T->>S: cadastrar(email_repetido)
+    S->>R: findByEmail(email)
+    R->>DB: Busca registro
+    DB-->>R: Encontrado!
+    R-->>S: Retorna Usuário
+    Note over S: Lógica de Exceção
+    S-->>T: throw RuntimeException ("E-mail já cadastrado")
+    
+3. Integração com API Externa via VCR (RF07)
+Mostra como o WireMock intercepta a chamada de ISBN.
+
+Snippet de código
+sequenceDiagram
+    participant T as Teste (ExternalApiVCRIT)
+    participant S as LivroService
+    participant V as WireMock (VCR/Stub)
+    
+    T->>S: consultarIsbn("97885")
+    Note over S, V: Interceptação VCR
+    S->>V: GET /api/books/isbn
+    V-->>S: Retorna JSON gravado (Mock)
+    S-->>T: Dados do Livro

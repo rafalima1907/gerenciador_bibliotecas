@@ -1,17 +1,17 @@
 package com.biblioteca.qs.Livro;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document(collection = "livros")
 @Data
-@Builder // Adicionamos o Builder para facilitar a criação no teste
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "livros")
 public class Livro {
     @Id
     private String id;

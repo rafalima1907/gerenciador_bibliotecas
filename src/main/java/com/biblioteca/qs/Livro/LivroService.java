@@ -9,7 +9,7 @@ import java.util.List;
 public class LivroService {
     
     private final LivroRepository livroRepository;
-    private final IsbnClient isbnClient; // Injeção do cliente externo
+    private final IsbnClient isbnClient; 
 
     public List<Livro> findAll() {
         return livroRepository.findAll();
@@ -19,8 +19,12 @@ public class LivroService {
         return livroRepository.save(livro);
     }
 
-    // Método solicitado para o requisito RF07
+    
     public String consultarIsbnExterno(String isbn) {
-        return isbnClient.buscarDadosPorIsbn(isbn);
+        try {
+            return isbnClient.buscarDadosPorIsbn(isbn);
+        } catch (Exception e) {
+            return "Erro ao consultar ISBN: " + e.getMessage();
+        }
     }
 }

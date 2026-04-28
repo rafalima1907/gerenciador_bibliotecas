@@ -28,11 +28,16 @@ jobs:
       - name: Permitir execução do Maven Wrapper
         run: chmod +x mvnw
 
-      
-      - name: Rodar Testes, JaCoCo e SonarQube
+      - name: Rodar Testes e JaCoCo (Gera o Relatório)
+        # Separamos o verify do sonar para garantir que o relatório seja criado primeiro
+        run: ./mvnw -B -ntp clean verify
+
+      - name: Rodar SonarQube (Opcional)
+        if: success() # Só tenta o sonar se os testes passarem
         run: |
-          ./mvnw -B -ntp clean verify sonar:sonar \
+          ./mvnw sonar:sonar \
           -Dsonar.projectKey=SEU_PROJETO_AQUI \
+          -Dsonar.organization=SEU_USUARIO_GITHUB \
           -Dsonar.host.url=https://sonarcloud.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

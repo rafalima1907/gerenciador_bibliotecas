@@ -19,10 +19,14 @@ sequenceDiagram
     R-->>S: Objeto Salvo
     S-->>C: Objeto Salvo
     C-->>T: 201 Created
-2. Validação de Regra de Negócio (RF04 - Caixa Branca)
-Este diagrama mostra a lógica do UsuarioServiceIT barrando e-mails duplicados.
+```
 
-Snippet de código
+---
+
+### 2. Validação de Regra de Negócio (RF04 - Caixa Branca)
+*Este diagrama mostra a lógica do UsuarioServiceIT barrando e-mails duplicados.*
+
+```mermaid
 sequenceDiagram
     participant T as Teste (Caixa Branca)
     participant S as UsuarioService
@@ -36,18 +40,22 @@ sequenceDiagram
     R-->>S: Retorna Usuário
     Note over S: Lógica de Exceção
     S-->>T: throw RuntimeException ("E-mail já cadastrado")
-    
-3. Integração com API Externa via VCR (RF07)
-Mostra como o WireMock intercepta a chamada de ISBN.
+```
 
-Snippet de código
+---
+
+### 3. Integração com API Externa via VCR (RF07)
+*Mostra como o WireMock intercepta a chamada de ISBN.*
+
+```mermaid
 sequenceDiagram
     participant T as Teste (ExternalApiVCRIT)
     participant S as LivroService
     participant V as WireMock (VCR/Stub)
-    
+
     T->>S: consultarIsbn("97885")
     Note over S, V: Interceptação VCR
     S->>V: GET /api/books/isbn
     V-->>S: Retorna JSON gravado (Mock)
     S-->>T: Dados do Livro
+```

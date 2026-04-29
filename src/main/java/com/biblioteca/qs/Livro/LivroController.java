@@ -1,24 +1,30 @@
 package com.biblioteca.qs.Livro;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/livros") 
+@RequestMapping("/api/livros")
+@RequiredArgsConstructor
 public class LivroController {
 
-    @Autowired
-    private LivroRepository repository;
+    private final LivroService livroService; 
 
     @GetMapping
     public List<Livro> listarTodos() {
-        return repository.findAll();
+        return livroService.findAll();
     }
 
-    @PostMapping 
-    public ResponseEntity<Livro> cadastrar(@RequestBody Livro livro) {
-        return ResponseEntity.ok(repository.save(livro));
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Livro cadastrar(@RequestBody Livro livro) {
+        return livroService.cadastrar(livro);
+    }
+    
+    @GetMapping("/isbn/{isbn}")
+    public String consultarIsbn(@PathVariable String isbn) {
+        return livroService.consultarIsbnExterno(isbn);
     }
 }

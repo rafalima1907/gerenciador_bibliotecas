@@ -12,7 +12,7 @@ public class UsuarioService {
     
     public Usuario cadastrar(Usuario usuario) {
         if (repository.findByEmail(usuario.getEmail()).isPresent()) {
-            throw new RuntimeException("E-mail já cadastrado!");
+            throw new IllegalArgumentException("E-mail já cadastrado!");
         }
         return repository.save(usuario);
     }

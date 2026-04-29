@@ -58,7 +58,7 @@ class UsuarioControllerIT {
                 restTemplate.postForEntity("/usuarios", usuario, String.class);
 
         
-        assertThat(response.getStatusCode().is5xxServerError()).isTrue();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).contains("E-mail já cadastrado");
     }
 }

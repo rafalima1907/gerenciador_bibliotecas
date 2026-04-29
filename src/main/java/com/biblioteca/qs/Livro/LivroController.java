@@ -10,7 +10,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LivroController {
 
-    private final LivroService livroService; 
+    private final LivroService livroService;
 
     @GetMapping
     public List<Livro> listarTodos() {
@@ -22,7 +22,7 @@ public class LivroController {
     public Livro cadastrar(@RequestBody Livro livro) {
         return livroService.cadastrar(livro);
     }
-    
+
     @GetMapping("/isbn/{isbn}")
     public String consultarIsbn(@PathVariable String isbn) {
         return livroService.consultarIsbnExterno(isbn);

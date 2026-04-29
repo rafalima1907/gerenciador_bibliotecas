@@ -34,25 +34,23 @@ class LivroControllerIT {
                 .isbn("987654321")
                 .build();
 
-        ResponseEntity<Livro> response = restTemplate.postForEntity("/livros", livro, Livro.class);
+        ResponseEntity<Livro> response = restTemplate.postForEntity("/api/livros", livro, Livro.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotNull();
     }
 
     @Test
     void deveListarLivrosViaEndpoint() {
-        // Primeiro cadastramos um livro para garantir que a lista tenha algo
         Livro livro = Livro.builder()
                 .titulo("Livro para Listagem")
                 .autor("Autor Teste")
                 .isbn("111222333")
                 .build();
-        restTemplate.postForEntity("/livros", livro, Livro.class);
+        restTemplate.postForEntity("/api/livros", livro, Livro.class);
 
-        // Agora testamos o GET - Isso cobre as linhas do listarTodos() que faltavam!
-        ResponseEntity<List> response = restTemplate.getForEntity("/livros", List.class);
+        ResponseEntity<List> response = restTemplate.getForEntity("/api/livros", List.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotEmpty();

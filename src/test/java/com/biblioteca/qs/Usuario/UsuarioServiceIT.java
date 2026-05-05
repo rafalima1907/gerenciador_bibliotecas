@@ -17,7 +17,7 @@ class UsuarioServiceIT {
 
     @Container
     @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:8");
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7");
 
     @Autowired
     private UsuarioService usuarioService;

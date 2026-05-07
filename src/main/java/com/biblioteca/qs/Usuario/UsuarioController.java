@@ -1,19 +1,21 @@
-package com.biblioteca.qs.Usuario; 
+package com.biblioteca.qs.Usuario;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/usuarios")
+@RequestMapping({"/usuarios", "/api/usuarios"})
+@RequiredArgsConstructor
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioService service;
+    private final UsuarioService service;
 
     @PostMapping
-    public ResponseEntity<Usuario> cadastrar(@RequestBody Usuario usuario) {
-        // Chama a lógica de "Caixa Branca" (E-mail único) antes de salvar
-        return ResponseEntity.ok(service.cadastrar(usuario));
+    public ResponseEntity<UsuarioResponse> cadastrar(@Valid @RequestBody Usuario usuario) {
+        Usuario salvo = service.cadastrar(usuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.from(salvo));
     }
 }

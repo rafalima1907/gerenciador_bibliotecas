@@ -1,19 +1,45 @@
 package com.biblioteca.qs.Usuario;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioService {
-    
-    @Autowired
-    private UsuarioRepository repository;
 
-    
+    private final UsuarioRepository repository;
+    private final PasswordEncoder passwordEncoder;
+
     public Usuario cadastrar(Usuario usuario) {
+        usuario.setNome(usuario.getNome().trim());
+        usuario.setEmail(normalizarEmail(usuario.getEmail()));
+
         if (repository.findByEmail(usuario.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("E-mail já cadastrado!");
+            throw new IllegalArgumentException("E-mail ja cadastrado");
         }
+
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         return repository.save(usuario);
+    }
+
+    public Usuario autenticar(String email, String senha) {
+        Usuario usuario = repository.findByEmail(normalizarEmail(email))
+                .orElseThrow(() -> new IllegalArgumentException("Credenciais invalidas"));
+
+        if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+            throw new IllegalArgumentException("Credenciais invalidas");
+        }
+
+        return usuario;
+    }
+
+    public Usuario buscarPorId(String id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario nao encontrado"));
+    }
+
+    private String normalizarEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
     }
 }

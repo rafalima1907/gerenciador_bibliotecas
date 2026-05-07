@@ -1,5 +1,6 @@
 package com.biblioteca.qs.Usuario;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,41 +25,56 @@ class UsuarioControllerIT {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private UsuarioRepository repository;
+
+    @BeforeEach
+    void limparBase() {
+        repository.deleteAll();
+    }
+
     @Test
     void deveCadastrarUsuarioViaApi() {
-        
-        Usuario usuario = new Usuario();
-        usuario.setNome("Admin");
-        usuario.setEmail("admin@biblioteca.com");
-        usuario.setSenha("admin123");
+        Usuario usuario = usuario("Admin", "admin@biblioteca.com", "Senha123!");
 
-      
-        ResponseEntity<Usuario> response =
-                restTemplate.postForEntity("/usuarios", usuario, Usuario.class);
+        ResponseEntity<UsuarioResponse> response =
+                restTemplate.postForEntity("/usuarios", usuario, UsuarioResponse.class);
 
-        
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getId()).isNotNull();
+        assertThat(response.getBody().id()).isNotNull();
+        assertThat(response.getBody().email()).isEqualTo("admin@biblioteca.com");
     }
 
     @Test
     void deveRetornarErroParaEmailDuplicado() {
-        
-        Usuario usuario = new Usuario();
-        usuario.setNome("Duplicado");
-        usuario.setEmail("duplicado_controller@email.com");
-        usuario.setSenha("123");
+        Usuario usuario = usuario("Duplicado", "duplicado_controller@email.com", "Senha123!");
 
-        
-        restTemplate.postForEntity("/usuarios", usuario, Usuario.class);
+        restTemplate.postForEntity("/usuarios", usuario, UsuarioResponse.class);
 
-        
         ResponseEntity<String> response =
                 restTemplate.postForEntity("/usuarios", usuario, String.class);
 
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody()).contains("E-mail já cadastrado");
+        assertThat(response.getBody()).contains("E-mail ja cadastrado");
+    }
+
+    @Test
+    void deveRetornarBadRequestParaEmailInvalido() {
+        Usuario usuario = usuario("Email invalido", "email-invalido", "Senha123!");
+
+        ResponseEntity<String> response =
+                restTemplate.postForEntity("/usuarios", usuario, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).contains("E-mail deve ter formato valido");
+    }
+
+    private Usuario usuario(String nome, String email, String senha) {
+        Usuario usuario = new Usuario();
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setSenha(senha);
+        return usuario;
     }
 }

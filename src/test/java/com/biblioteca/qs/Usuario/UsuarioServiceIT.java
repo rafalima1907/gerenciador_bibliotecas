@@ -1,5 +1,6 @@
 package com.biblioteca.qs.Usuario;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,42 +23,60 @@ class UsuarioServiceIT {
     @Autowired
     private UsuarioService usuarioService;
 
-    @Test
-    void deveCadastrarUsuarioComSucesso() {
-        // Arrange
-        Usuario usuario = new Usuario();
-        usuario.setNome("Teste");
-        usuario.setEmail("teste_unico_service@email.com");
-        usuario.setSenha("123");
+    @Autowired
+    private UsuarioRepository repository;
 
-        // Act
+    @BeforeEach
+    void limparBase() {
+        repository.deleteAll();
+    }
+
+    @Test
+    void deveCadastrarUsuarioComSucessoECriptografarSenha() {
+        Usuario usuario = usuario("Teste", "TESTE_UNICO_SERVICE@EMAIL.COM", "Senha123!");
+
         Usuario salvo = usuarioService.cadastrar(usuario);
 
-        // Assert
         assertThat(salvo).isNotNull();
         assertThat(salvo.getId()).isNotNull();
         assertThat(salvo.getNome()).isEqualTo("Teste");
         assertThat(salvo.getEmail()).isEqualTo("teste_unico_service@email.com");
+        assertThat(salvo.getSenha()).isNotEqualTo("Senha123!");
+        assertThat(salvo.getSenha()).startsWith("$2");
+    }
+
+    @Test
+    void deveAutenticarUsuarioComSenhaCorreta() {
+        usuarioService.cadastrar(usuario("Teste", "login@email.com", "Senha123!"));
+
+        Usuario autenticado = usuarioService.autenticar("login@email.com", "Senha123!");
+
+        assertThat(autenticado.getEmail()).isEqualTo("login@email.com");
+    }
+
+    @Test
+    void deveLancarExcecaoParaSenhaIncorreta() {
+        usuarioService.cadastrar(usuario("Teste", "login@email.com", "Senha123!"));
+
+        assertThatThrownBy(() -> usuarioService.autenticar("login@email.com", "senha-errada"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Credenciais invalidas");
     }
 
     @Test
     void deveLancarExcecaoParaEmailDuplicado() {
-        // Arrange
-        Usuario u1 = new Usuario();
-        u1.setNome("User1");
-        u1.setEmail("duplicado_service@email.com");
-        u1.setSenha("123");
+        usuarioService.cadastrar(usuario("User1", "duplicado_service@email.com", "Senha123!"));
 
-        usuarioService.cadastrar(u1);
+        assertThatThrownBy(() -> usuarioService.cadastrar(usuario("User2", "duplicado_service@email.com", "Outra123!")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("E-mail ja cadastrado");
+    }
 
-        Usuario u2 = new Usuario();
-        u2.setNome("User2");
-        u2.setEmail("duplicado_service@email.com");
-        u2.setSenha("456");
-
-        // Act + Assert
-        assertThatThrownBy(() -> usuarioService.cadastrar(u2))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("E-mail já cadastrado");
+    private Usuario usuario(String nome, String email, String senha) {
+        Usuario usuario = new Usuario();
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setSenha(senha);
+        return usuario;
     }
 }

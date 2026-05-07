@@ -16,6 +16,7 @@
 
     <properties>
         <java.version>21</java.version>
+        <argLine></argLine>
     </properties>
 
     <dependencies>
@@ -88,7 +89,18 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine}</argLine>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine}</argLine>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -114,12 +126,18 @@
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                        <configuration>
+                            <destFile>${java.io.tmpdir}/gerenciador-bibliotecas-jacoco.exec</destFile>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>prepare-agent-it</id>
                         <goals>
                             <goal>prepare-agent-integration</goal>
                         </goals>
+                        <configuration>
+                            <destFile>${java.io.tmpdir}/gerenciador-bibliotecas-jacoco-it.exec</destFile>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>merge-results</id>
@@ -130,9 +148,9 @@
                         <configuration>
                             <fileSets>
                                 <fileSet>
-                                    <directory>${project.build.directory}</directory>
+                                    <directory>${java.io.tmpdir}</directory>
                                     <includes>
-                                        <include>*.exec</include>
+                                        <include>gerenciador-bibliotecas-jacoco*.exec</include>
                                     </includes>
                                 </fileSet>
                             </fileSets>

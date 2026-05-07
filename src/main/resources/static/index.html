@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Biblioteca Pessoal</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #1f2933;
+      --muted: #667085;
+      --line: #d9dee7;
+      --primary: #0f766e;
+      --danger: #b42318;
+      --focus: #f2b84b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .bar,
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 64px;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+      padding: 24px 0;
+    }
+
+    section,
+    form {
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 12px;
+      color: var(--text);
+      font: inherit;
+    }
+
+    input:focus {
+      outline: 3px solid color-mix(in srgb, var(--focus) 35%, transparent);
+      border-color: var(--focus);
+    }
+
+    button {
+      min-height: 40px;
+      border: 0;
+      border-radius: 6px;
+      padding: 0 14px;
+      background: var(--primary);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #344054;
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--line);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .message {
+      min-height: 24px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #eef2f6;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <h1>Biblioteca Pessoal</h1>
+      <div class="actions">
+        <span id="currentUser" class="message"></span>
+        <button id="logoutButton" class="ghost hidden" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="authPanel" class="panel stack">
+      <form id="authForm" class="stack">
+        <label>Nome
+          <input id="nome" autocomplete="name" maxlength="80">
+        </label>
+        <label>E-mail
+          <input id="email" type="email" autocomplete="email" required>
+        </label>
+        <label>Senha
+          <input id="senha" type="password" autocomplete="current-password" minlength="8" required>
+        </label>
+        <div class="actions">
+          <button id="loginButton" type="submit">Entrar</button>
+          <button id="registerButton" class="secondary" type="button">Cadastrar</button>
+        </div>
+      </form>
+      <p id="authMessage" class="message"></p>
+    </section>
+
+    <section id="booksPanel" class="stack hidden">
+      <form id="bookForm" class="panel stack">
+        <input id="bookId" type="hidden">
+        <label>Titulo
+          <input id="titulo" required maxlength="120">
+        </label>
+        <label>Autor
+          <input id="autor" required maxlength="120">
+        </label>
+        <label>ISBN
+          <input id="isbn" required>
+        </label>
+        <div class="actions">
+          <button type="submit">Salvar livro</button>
+          <button id="clearBookButton" class="ghost" type="button">Limpar</button>
+        </div>
+      </form>
+
+      <table aria-label="Livros cadastrados">
+        <thead>
+          <tr>
+            <th>Titulo</th>
+            <th>Autor</th>
+            <th>ISBN</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody id="booksBody"></tbody>
+      </table>
+      <p id="bookMessage" class="message"></p>
+    </section>
+  </main>
+
+  <script>
+    const authPanel = document.querySelector("#authPanel");
+    const booksPanel = document.querySelector("#booksPanel");
+    const authMessage = document.querySelector("#authMessage");
+    const bookMessage = document.querySelector("#bookMessage");
+    const currentUser = document.querySelector("#currentUser");
+    const logoutButton = document.querySelector("#logoutButton");
+    const booksBody = document.querySelector("#booksBody");
+
+    const jsonHeaders = { "Content-Type": "application/json" };
+
+    async function request(url, options = {}) {
+      const response = await fetch(url, {
+        credentials: "same-origin",
+        headers: jsonHeaders,
+        ...options
+      });
+      const text = await response.text();
+      const body = text ? JSON.parse(text) : null;
+
+      if (!response.ok) {
+        const message = body?.erro || Object.values(body || {}).join(", ") || "Falha na operacao";
+        throw new Error(message);
+      }
+
+      return body;
+    }
+
+    function authPayload() {
+      return {
+        nome: document.querySelector("#nome").value,
+        email: document.querySelector("#email").value,
+        senha: document.querySelector("#senha").value
+      };
+    }
+
+    function bookPayload() {
+      return {
+        titulo: document.querySelector("#titulo").value,
+        autor: document.querySelector("#autor").value,
+        isbn: document.querySelector("#isbn").value
+      };
+    }
+
+    function showApp(user) {
+      authPanel.classList.add("hidden");
+      booksPanel.classList.remove("hidden");
+      logoutButton.classList.remove("hidden");
+      currentUser.textContent = user.nome;
+      loadBooks();
+    }
+
+    function showAuth() {
+      authPanel.classList.remove("hidden");
+      booksPanel.classList.add("hidden");
+      logoutButton.classList.add("hidden");
+      currentUser.textContent = "";
+    }
+
+    async function loadBooks() {
+      const books = await request("/api/livros");
+      booksBody.innerHTML = "";
+      books.forEach((book) => {
+        const row = document.createElement("tr");
+        const title = document.createElement("td");
+        const author = document.createElement("td");
+        const isbn = document.createElement("td");
+        const actions = document.createElement("td");
+        const editButton = document.createElement("button");
+        const deleteButton = document.createElement("button");
+
+        title.textContent = book.titulo;
+        author.textContent = book.autor;
+        isbn.textContent = book.isbn;
+
+        actions.className = "actions";
+        editButton.className = "secondary";
+        editButton.type = "button";
+        editButton.textContent = "Editar";
+        editButton.addEventListener("click", () => fillBook(book));
+
+        deleteButton.className = "danger";
+        deleteButton.type = "button";
+        deleteButton.textContent = "Excluir";
+        deleteButton.addEventListener("click", () => deleteBook(book.id));
+
+        actions.append(editButton, deleteButton);
+        row.append(title, author, isbn, actions);
+        booksBody.appendChild(row);
+      });
+    }
+
+    function fillBook(book) {
+      document.querySelector("#bookId").value = book.id;
+      document.querySelector("#titulo").value = book.titulo;
+      document.querySelector("#autor").value = book.autor;
+      document.querySelector("#isbn").value = book.isbn;
+    }
+
+    function clearBook() {
+      document.querySelector("#bookId").value = "";
+      document.querySelector("#bookForm").reset();
+    }
+
+    async function deleteBook(id) {
+      await fetch(`/api/livros/${id}`, { method: "DELETE", credentials: "same-origin" });
+      bookMessage.textContent = "Livro excluido.";
+      await loadBooks();
+    }
+
+    document.querySelector("#authForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        const { email, senha } = authPayload();
+        const user = await request("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ email, senha })
+        });
+        authMessage.textContent = "";
+        showApp(user);
+      } catch (error) {
+        authMessage.textContent = error.message;
+      }
+    });
+
+    document.querySelector("#registerButton").addEventListener("click", async () => {
+      try {
+        const user = await request("/api/auth/register", {
+          method: "POST",
+          body: JSON.stringify(authPayload())
+        });
+        authMessage.textContent = "";
+        showApp(user);
+      } catch (error) {
+        authMessage.textContent = error.message;
+      }
+    });
+
+    document.querySelector("#bookForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const id = document.querySelector("#bookId").value;
+      const method = id ? "PUT" : "POST";
+      const url = id ? `/api/livros/${id}` : "/api/livros";
+
+      try {
+        await request(url, { method, body: JSON.stringify(bookPayload()) });
+        clearBook();
+        bookMessage.textContent = "Livro salvo.";
+        await loadBooks();
+      } catch (error) {
+        bookMessage.textContent = error.message;
+      }
+    });
+
+    document.querySelector("#clearBookButton").addEventListener("click", clearBook);
+    logoutButton.addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+      showAuth();
+    });
+
+    request("/api/auth/me").then(showApp).catch(showAuth);
+  </script>
+</body>
+</html>

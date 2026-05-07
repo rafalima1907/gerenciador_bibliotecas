@@ -1,5 +1,6 @@
 package com.biblioteca.qs.Livro;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Testcontainers
-public class LivroRepositoryIT {
+class LivroRepositoryIT {
 
     @Container
     @ServiceConnection
@@ -21,20 +22,33 @@ public class LivroRepositoryIT {
     @Autowired
     private LivroRepository repository;
 
+    @BeforeEach
+    void limparBase() {
+        repository.deleteAll();
+    }
+
     @Test
     void deveSalvarLivroNoMongoDBRealSemMocks() {
-        // Usando o Builder para evitar erros de construtor no VS Code
         Livro livro = Livro.builder()
                 .titulo("Dom Casmurro")
                 .autor("Machado de Assis")
-                .isbn("123456789")
+                .isbn("9788535910663")
                 .build();
 
-        // Persistência real
         Livro salvo = repository.save(livro);
 
-        // Validação usando os métodos do Lombok
         assertThat(salvo.getId()).isNotNull();
         assertThat(salvo.getTitulo()).isEqualTo("Dom Casmurro");
+    }
+
+    @Test
+    void deveBuscarLivroPorIsbn() {
+        repository.save(Livro.builder()
+                .titulo("Engenharia de Software")
+                .autor("Pressman")
+                .isbn("9788580555332")
+                .build());
+
+        assertThat(repository.findByIsbn("9788580555332")).isPresent();
     }
 }

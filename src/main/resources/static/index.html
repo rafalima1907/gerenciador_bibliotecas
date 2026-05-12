@@ -252,8 +252,8 @@
     const jsonHeaders = { "Content-Type": "application/json" };
 
     async function request(url, options = {}) {
-      const response = await fetch(url, {
-        credentials: "same-origin",
+      const response = await fetch("http://localhost:8080" + url, {
+       // credentials: "same-origin",
         headers: jsonHeaders,
         ...options
       });

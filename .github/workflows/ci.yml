@@ -9,12 +9,63 @@ on:
       - "**"
 
 jobs:
-  quality:
+  # 1. Job de Build
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Build
+        run: ./mvnw -B -ntp clean compile
+
+  # 2. Job de Testes
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Test
+        run: ./mvnw -B -ntp test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+
+  # 3. Job de Cobertura e Qualidade
+  verify-coverage:
+    needs: test
     runs-on: ubuntu-latest
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,8 +82,8 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x mvnw
 
-      - name: Test and coverage
-        run: ./mvnw -B -ntp clean verify
+      - name: Verify and Coverage
+        run: ./mvnw -B -ntp verify
 
       - name: SonarCloud
         if: ${{ success() && env.SONAR_TOKEN != '' }}
@@ -42,15 +93,6 @@ jobs:
             -Dsonar.organization=rafalima1907 \
             -Dsonar.projectKey=rafalima1907_gerenciador_bibliotecas \
             -Dsonar.token=${SONAR_TOKEN}
-
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: |
-            target/surefire-reports/
-            target/failsafe-reports/
 
       - name: Upload JaCoCo report
         if: always()

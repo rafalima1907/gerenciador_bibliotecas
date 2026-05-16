@@ -13,6 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(properties = "viacep.api.base-url=http://localhost:8089/ws")
 @Testcontainers
@@ -25,6 +26,9 @@ class ExternalApiVCRIT {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private ViaCepClient viaCepClient;
 
     @Autowired
     private UsuarioRepository repository;
@@ -59,6 +63,36 @@ class ExternalApiVCRIT {
         assertThat(salvo.getLocalidade()).isEqualTo("Sao Paulo");
         assertThat(salvo.getUf()).isEqualTo("SP");
         verify(getRequestedFor(urlEqualTo("/ws/01001000/json/")));
+    }
+
+    @Test
+    void deveRejeitarCepComFormatoInvalidoAntesDaConsultaExterna() {
+        assertThatThrownBy(() -> viaCepClient.buscarEnderecoPorCep("123"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("CEP deve conter 8 digitos validos");
+    }
+
+    @Test
+    void deveRetornarErroQuandoViaCepInformarCepNaoEncontrado() {
+        stubFor(get(urlEqualTo("/ws/99999999/json/"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"erro\": true}")));
+
+        assertThatThrownBy(() -> viaCepClient.buscarEnderecoPorCep("99999-999"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("CEP nao encontrado");
+    }
+
+    @Test
+    void deveRetornarErroQuandoViaCepEstiverIndisponivel() {
+        stubFor(get(urlEqualTo("/ws/01001000/json/"))
+                .willReturn(aResponse().withStatus(503)));
+
+        assertThatThrownBy(() -> viaCepClient.buscarEnderecoPorCep("01001-000"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Nao foi possivel consultar o CEP");
     }
 
     private Usuario usuarioComCep(String nome, String email, String senha, String cep) {

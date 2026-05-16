@@ -50,13 +50,53 @@ public class LivroService {
     }
 
     private String normalizarIsbn(String isbn) {
-        String isbnNormalizado = isbn == null ? "" : isbn.replaceAll("[^0-9Xx]", "").toUpperCase();
+        String isbnNormalizado = manterDigitosEXFinal(isbn);
 
-        if (!isbnNormalizado.matches("[0-9]{10}|[0-9]{13}|[0-9]{9}X")) {
+        if (!isbnValido(isbnNormalizado)) {
             throw new IllegalArgumentException("ISBN deve conter 10 ou 13 digitos validos");
         }
 
         return isbnNormalizado;
+    }
+
+    private String manterDigitosEXFinal(String isbn) {
+        if (isbn == null) {
+            return "";
+        }
+
+        StringBuilder normalizado = new StringBuilder();
+        for (int i = 0; i < isbn.length(); i++) {
+            char caractere = isbn.charAt(i);
+            if (Character.isDigit(caractere)) {
+                normalizado.append(caractere);
+            } else if (normalizado.length() == 9 && (caractere == 'X' || caractere == 'x')) {
+                normalizado.append('X');
+            }
+        }
+        return normalizado.toString();
+    }
+
+    private boolean isbnValido(String isbn) {
+        if (isbn.length() == 13) {
+            return contemApenasDigitos(isbn);
+        }
+        if (isbn.length() == 10) {
+            return contemApenasDigitos(isbn.substring(0, 9)) && ehDigitoOuX(isbn.charAt(9));
+        }
+        return false;
+    }
+
+    private boolean contemApenasDigitos(String valor) {
+        for (int i = 0; i < valor.length(); i++) {
+            if (!Character.isDigit(valor.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean ehDigitoOuX(char caractere) {
+        return Character.isDigit(caractere) || caractere == 'X';
     }
 
     private void garantirIsbnUnico(String isbn, String idAtual) {

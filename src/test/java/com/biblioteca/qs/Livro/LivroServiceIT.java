@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -59,11 +60,26 @@ class LivroServiceIT {
         assertThat(salvo.getIsbn()).isEqualTo("9788580555332");
     }
 
+    @Test
+    void deveAceitarIsbn10ComXFinal() {
+        Livro salvo = livroService.cadastrar(livro("Livro ISBN 10", "Autor", "0-306-40615-x"));
+
+        assertThat(salvo.getIsbn()).isEqualTo("030640615X");
+    }
+
+    @Test
+    void deveAceitarIsbn10ApenasNumerico() {
+        Livro salvo = livroService.cadastrar(livro("Livro ISBN 10 numerico", "Autor", "0306406152"));
+
+        assertThat(salvo.getIsbn()).isEqualTo("0306406152");
+    }
+
     @ParameterizedTest
     @CsvSource({
             "123",
             "ABC",
-            "97885805553"
+            "97885805553",
+            "12345678X0"
     })
     void deveRejeitarIsbnInvalido(String isbn) {
         Livro livro = Livro.builder()
@@ -73,6 +89,14 @@ class LivroServiceIT {
                 .build();
 
         assertThatThrownBy(() -> livroService.cadastrar(livro))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("ISBN deve conter 10 ou 13 digitos validos");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void deveRejeitarIsbnNuloOuVazio(String isbn) {
+        assertThatThrownBy(() -> livroService.cadastrar(livro("Livro invalido", "Autor", isbn)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN deve conter 10 ou 13 digitos validos");
     }

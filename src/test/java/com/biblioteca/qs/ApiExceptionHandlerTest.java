@@ -35,4 +35,12 @@ class ApiExceptionHandlerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isEqualTo(Map.of("erro", "CEP deve conter 8 digitos validos"));
     }
+
+    @Test
+    void deveRetornarBadRequestParaMensagemNula() {
+        var response = handler.handleBusinessRule(new IllegalArgumentException((String) null));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("erro", "Erro de regra de negocio");
+    }
 }

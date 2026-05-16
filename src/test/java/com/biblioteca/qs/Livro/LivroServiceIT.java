@@ -86,6 +86,27 @@ class LivroServiceIT {
                 .hasMessageContaining("ISBN ja cadastrado");
     }
 
+    @Test
+    void deveAtualizarLivroMantendoMesmoIsbn() {
+        Livro salvo = livroService.cadastrar(livro("Titulo antigo", "Autor", "9788580555332"));
+
+        Livro atualizado = livroService.atualizar(salvo.getId(), livro("Titulo novo", "Autor novo", "9788580555332"));
+
+        assertThat(atualizado.getId()).isEqualTo(salvo.getId());
+        assertThat(atualizado.getTitulo()).isEqualTo("Titulo novo");
+        assertThat(atualizado.getIsbn()).isEqualTo("9788580555332");
+    }
+
+    @Test
+    void deveRejeitarAtualizacaoComIsbnDeOutroLivro() {
+        Livro primeiro = livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"));
+        livroService.cadastrar(livro("Livro 2", "Autor", "9780134685991"));
+
+        assertThatThrownBy(() -> livroService.atualizar(primeiro.getId(), livro("Livro 1", "Autor", "9780134685991")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("ISBN ja cadastrado");
+    }
+
     private Livro livro(String titulo, String autor, String isbn) {
         return Livro.builder()
                 .titulo(titulo)

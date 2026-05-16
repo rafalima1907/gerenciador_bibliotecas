@@ -16,8 +16,9 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBusinessRule(IllegalArgumentException exception) {
-        return ResponseEntity.status(statusFor(exception.getMessage()))
-                .body(Map.of("erro", exception.getMessage()));
+        String message = exception.getMessage() == null ? "Erro de regra de negocio" : exception.getMessage();
+        return ResponseEntity.status(statusFor(message))
+                .body(Map.of("erro", message));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

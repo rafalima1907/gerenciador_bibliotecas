@@ -2,6 +2,8 @@ package com.biblioteca.qs.Usuario;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.biblioteca.qs.viacep.ViaCepClient;
+import com.biblioteca.qs.viacep.ViaCepResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

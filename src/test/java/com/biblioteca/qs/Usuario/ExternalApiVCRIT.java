@@ -1,5 +1,6 @@
 package com.biblioteca.qs.Usuario;
 
+import com.biblioteca.qs.viacep.ViaCepClient;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

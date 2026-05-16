@@ -7,7 +7,7 @@ Disciplina: Qualidade de Software - SENAC
 
 | ID | Requisito | Implementacao | Testes |
 | --- | --- | --- | --- |
-| RF01 | Cadastrar usuario com nome, e-mail, senha e endereco por CEP quando informado. | `UsuarioController`, `AuthController`, `UsuarioService`, `ViaCepClient` | `UsuarioControllerIT.deveCadastrarUsuarioViaApi`, `AuthControllerIT.deveRegistrarUsuarioEConsultarSessaoAtual`, `ExternalApiVCRIT.deveSimularConsultaViaCepNoCadastroUsuario` |
+| RF01 | Cadastrar usuario com nome, e-mail, senha e endereco por CEP quando informado. | `UsuarioController`, `AuthController`, `UsuarioService`, `viacep.ViaCepClient` | `UsuarioControllerIT.deveCadastrarUsuarioViaApi`, `AuthControllerIT.deveRegistrarUsuarioEConsultarSessaoAtual`, `ExternalApiVCRIT.deveSimularConsultaViaCepNoCadastroUsuario` |
 | RF02 | Impedir cadastro de e-mail duplicado. | `UsuarioService.cadastrar` | `UsuarioServiceIT.deveLancarExcecaoParaEmailDuplicado`, `UsuarioControllerIT.deveRetornarErroParaEmailDuplicado` |
 | RF03 | Autenticar usuario e manter sessao. | `AuthController`, `UsuarioService.autenticar` | `AuthControllerIT.deveRealizarLoginComCredenciaisValidas`, `AuthControllerIT.deveRegistrarUsuarioEConsultarSessaoAtual` |
 | RF04 | Recusar credenciais invalidas. | `UsuarioService.autenticar`, `ApiExceptionHandler` | `UsuarioServiceIT.deveLancarExcecaoParaSenhaIncorreta`, `AuthControllerIT.deveRecusarLoginComCredenciaisInvalidas` |
@@ -17,7 +17,7 @@ Disciplina: Qualidade de Software - SENAC
 | RF08 | Excluir livro existente. | `LivroController.excluir`, `LivroService.excluir` | `LivroControllerIT.deveExcluirLivroViaEndpoint` |
 | RF09 | Impedir ISBN duplicado. | `LivroService.garantirIsbnUnico`, `LivroRepository.findByIsbn` | `LivroServiceIT.deveRejeitarIsbnDuplicado`, `LivroControllerIT.deveRetornarConflitoParaIsbnDuplicado` |
 | RF10 | Validar e normalizar ISBN. | `LivroService.normalizarIsbn` | `LivroServiceIT.deveNormalizarIsbnAntesDePersistir`, `LivroServiceIT.deveRejeitarIsbnInvalido` |
-| RF11 | Consultar dados externos do ViaCEP sem depender de internet nos testes. | `ViaCepClient`, `UsuarioService.preencherEnderecoQuandoCepInformado` | `ExternalApiVCRIT.deveSimularConsultaViaCepNoCadastroUsuario` |
+| RF11 | Consultar dados externos do ViaCEP sem depender de internet nos testes. | `viacep.ViaCepClient`, `UsuarioService.preencherEnderecoQuandoCepInformado` | `ExternalApiVCRIT.deveSimularConsultaViaCepNoCadastroUsuario` |
 | RF12 | Disponibilizar interface web funcional com gerenciamento de sessao. | `src/main/resources/static/index.html` | Coberto indiretamente pelos endpoints de auth/livros em `AuthControllerIT` e `LivroControllerIT` |
 
 ## Requisitos Nao Funcionais

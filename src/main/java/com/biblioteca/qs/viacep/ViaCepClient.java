@@ -1,4 +1,4 @@
-package com.biblioteca.qs.Usuario;
+package com.biblioteca.qs.viacep;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

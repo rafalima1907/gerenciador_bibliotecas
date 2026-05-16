@@ -1,7 +1,7 @@
-package com.biblioteca.qs.Usuario;
+package com.biblioteca.qs.viacep;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ViaCepResponse(

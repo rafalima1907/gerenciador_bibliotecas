@@ -1,5 +1,7 @@
 package com.biblioteca.qs.Usuario;
 
+import com.biblioteca.qs.viacep.ViaCepClient;
+import com.biblioteca.qs.viacep.ViaCepResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

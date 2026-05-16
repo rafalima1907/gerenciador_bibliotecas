@@ -40,9 +40,4 @@ public class LivroController {
     public void excluir(@PathVariable String id) {
         livroService.excluir(id);
     }
-
-    @GetMapping("/isbn/{isbn}")
-    public String consultarIsbn(@PathVariable String isbn) {
-        return livroService.consultarIsbnExterno(isbn);
-    }
 }

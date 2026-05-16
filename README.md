@@ -9,14 +9,14 @@ Testcontainers, WireMock/VCR, JaCoCo, GitHub Actions e SonarCloud.
 
 ## Escopo Atendido
 
-- Cadastro de usuarios com e-mail unico.
+- Cadastro de usuarios com e-mail unico e preenchimento de endereco por CEP.
 - Senha protegida com BCrypt antes da persistencia.
 - Login, consulta da sessao atual e logout via `HttpSession`.
 - Interface web funcional em `/` para cadastro/login e CRUD de livros.
 - CRUD completo de livros em `/api/livros`.
 - Validacao de campos obrigatorios e formato de e-mail.
 - Regra de negocio para ISBN valido e unico.
-- Consulta externa de ISBN isolada por WireMock/VCR nos testes.
+- Consulta externa do ViaCEP isolada por WireMock/VCR nos testes.
 - Testes de integracao com MongoDB real via Testcontainers.
 - Cobertura minima configurada em 80% via JaCoCo.
 - Workflow de CI em `.github/workflows/ci.yml`.
@@ -68,7 +68,7 @@ Esse comando executa:
 - testes de contexto pelo Surefire;
 - testes de integracao `*IT` pelo Failsafe;
 - MongoDB real com Testcontainers;
-- WireMock para simular API externa;
+- WireMock para simular a API externa ViaCEP;
 - relatorio JaCoCo;
 - verificacao de cobertura minima de 80%.
 
@@ -100,7 +100,6 @@ Livros:
 - `POST /api/livros`
 - `PUT /api/livros/{id}`
 - `DELETE /api/livros/{id}`
-- `GET /api/livros/isbn/{isbn}`
 
 ## Qualidade Automatizada
 

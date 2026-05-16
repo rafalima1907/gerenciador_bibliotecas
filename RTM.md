@@ -7,7 +7,7 @@ Disciplina: Qualidade de Software - SENAC
 
 | ID | Requisito | Implementacao | Testes |
 | --- | --- | --- | --- |
-| RF01 | Cadastrar usuario com nome, e-mail e senha. | `UsuarioController`, `AuthController`, `UsuarioService` | `UsuarioControllerIT.deveCadastrarUsuarioViaApi`, `AuthControllerIT.deveRegistrarUsuarioEConsultarSessaoAtual` |
+| RF01 | Cadastrar usuario com nome, e-mail, senha e endereco por CEP quando informado. | `UsuarioController`, `AuthController`, `UsuarioService`, `ViaCepClient` | `UsuarioControllerIT.deveCadastrarUsuarioViaApi`, `AuthControllerIT.deveRegistrarUsuarioEConsultarSessaoAtual`, `ExternalApiVCRIT.deveSimularConsultaViaCepNoCadastroUsuario` |
 | RF02 | Impedir cadastro de e-mail duplicado. | `UsuarioService.cadastrar` | `UsuarioServiceIT.deveLancarExcecaoParaEmailDuplicado`, `UsuarioControllerIT.deveRetornarErroParaEmailDuplicado` |
 | RF03 | Autenticar usuario e manter sessao. | `AuthController`, `UsuarioService.autenticar` | `AuthControllerIT.deveRealizarLoginComCredenciaisValidas`, `AuthControllerIT.deveRegistrarUsuarioEConsultarSessaoAtual` |
 | RF04 | Recusar credenciais invalidas. | `UsuarioService.autenticar`, `ApiExceptionHandler` | `UsuarioServiceIT.deveLancarExcecaoParaSenhaIncorreta`, `AuthControllerIT.deveRecusarLoginComCredenciaisInvalidas` |
@@ -17,7 +17,7 @@ Disciplina: Qualidade de Software - SENAC
 | RF08 | Excluir livro existente. | `LivroController.excluir`, `LivroService.excluir` | `LivroControllerIT.deveExcluirLivroViaEndpoint` |
 | RF09 | Impedir ISBN duplicado. | `LivroService.garantirIsbnUnico`, `LivroRepository.findByIsbn` | `LivroServiceIT.deveRejeitarIsbnDuplicado`, `LivroControllerIT.deveRetornarConflitoParaIsbnDuplicado` |
 | RF10 | Validar e normalizar ISBN. | `LivroService.normalizarIsbn` | `LivroServiceIT.deveNormalizarIsbnAntesDePersistir`, `LivroServiceIT.deveRejeitarIsbnInvalido` |
-| RF11 | Consultar dados externos por ISBN sem depender de internet nos testes. | `IsbnClient`, `LivroService.consultarIsbnExterno` | `ExternalApiVCRIT.deveSimularGravacaoVCR` |
+| RF11 | Consultar dados externos do ViaCEP sem depender de internet nos testes. | `ViaCepClient`, `UsuarioService.preencherEnderecoQuandoCepInformado` | `ExternalApiVCRIT.deveSimularConsultaViaCepNoCadastroUsuario` |
 | RF12 | Disponibilizar interface web funcional com gerenciamento de sessao. | `src/main/resources/static/index.html` | Coberto indiretamente pelos endpoints de auth/livros em `AuthControllerIT` e `LivroControllerIT` |
 
 ## Requisitos Nao Funcionais
@@ -26,7 +26,7 @@ Disciplina: Qualidade de Software - SENAC
 | --- | --- | --- |
 | RNF01 | Usar Spring Boot, MongoDB e arquitetura MVC. | Pacotes `Controller`, `Service`, `Repository` e `@Document` MongoDB |
 | RNF02 | Nao usar mocks para persistencia. | Testes `*IT` usam `MongoDBContainer("mongo:7")` |
-| RNF03 | Usar VCR/WireMock para chamadas externas. | `ExternalApiVCRIT` usa `@WireMockTest` |
+| RNF03 | Usar VCR/WireMock para chamadas externas. | `ExternalApiVCRIT` usa `@WireMockTest` para simular ViaCEP |
 | RNF04 | Cobertura minima de 80%. | Regra `jacoco:check` no `pom.xml` |
 | RNF05 | CI em GitHub Actions. | `.github/workflows/ci.yml` |
 | RNF06 | Analise SonarCloud/SonarQube. | `sonar-project.properties` e etapa `SonarCloud` no CI |
@@ -118,22 +118,22 @@ sequenceDiagram
     R->>DB: remover documento
 ```
 
-### RF11 - Consulta Externa com WireMock/VCR
+### RF11 - Consulta Externa ViaCEP com WireMock/VCR
 
 ```mermaid
 sequenceDiagram
     participant T as ExternalApiVCRIT
-    participant S as LivroService
-    participant I as IsbnClient
+    participant S as UsuarioService
+    participant V as ViaCepClient
     participant W as WireMock
 
-    T->>W: stub GET /api/books/{isbn}
-    T->>S: consultarIsbnExterno(isbn)
-    S->>I: buscarDadosPorIsbn(isbn)
-    I->>W: GET /api/books/{isbn}
-    W-->>I: JSON gravado
-    I-->>S: resposta externa simulada
-    S-->>T: dados do livro
+    T->>W: stub GET /ws/{cep}/json/
+    T->>S: cadastrar(usuario com CEP)
+    S->>V: buscarEnderecoPorCep(cep)
+    V->>W: GET /ws/{cep}/json/
+    W-->>V: JSON gravado do ViaCEP
+    V-->>S: endereco externo simulado
+    S-->>T: usuario salvo com endereco
 ```
 
 ## Criterios de Aceite da Entrega

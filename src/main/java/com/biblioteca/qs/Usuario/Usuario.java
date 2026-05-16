@@ -2,6 +2,7 @@ package com.biblioteca.qs.Usuario;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -24,4 +25,15 @@ public class Usuario {
     @NotBlank(message = "Senha e obrigatoria")
     @Size(min = 8, message = "Senha deve ter ao menos 8 caracteres")
     private String senha;
+
+    @Pattern(regexp = "^$|\\d{5}-?\\d{3}", message = "CEP deve conter 8 digitos validos")
+    private String cep;
+
+    private String logradouro;
+
+    private String bairro;
+
+    private String localidade;
+
+    private String uf;
 }

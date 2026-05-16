@@ -86,13 +86,6 @@ class LivroServiceIT {
                 .hasMessageContaining("ISBN ja cadastrado");
     }
 
-    @Test
-    void deveRetornarErroQuandoIsbnClientFalhar() {
-        String resultado = livroService.consultarIsbnExterno("9788580555332");
-
-        assertThat(resultado).contains("Erro ao consultar ISBN");
-    }
-
     private Livro livro(String titulo, String autor, String isbn) {
         return Livro.builder()
                 .titulo(titulo)

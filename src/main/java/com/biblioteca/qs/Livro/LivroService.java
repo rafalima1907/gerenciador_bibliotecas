@@ -10,7 +10,6 @@ import java.util.List;
 public class LivroService {
 
     private final LivroRepository livroRepository;
-    private final IsbnClient isbnClient;
 
     public List<Livro> findAll() {
         return livroRepository.findAll();
@@ -42,14 +41,6 @@ public class LivroService {
     public void excluir(String id) {
         Livro existente = findById(id);
         livroRepository.delete(existente);
-    }
-
-    public String consultarIsbnExterno(String isbn) {
-        try {
-            return isbnClient.buscarDadosPorIsbn(normalizarIsbn(isbn));
-        } catch (Exception e) {
-            return "Erro ao consultar ISBN: " + e.getMessage();
-        }
     }
 
     private void prepararParaPersistencia(Livro livro) {

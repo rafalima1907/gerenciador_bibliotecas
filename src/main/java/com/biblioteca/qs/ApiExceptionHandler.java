@@ -2,6 +2,7 @@ package com.biblioteca.qs;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataAccessException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,8 +16,9 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBusinessRule(IllegalArgumentException exception) {
-        return ResponseEntity.status(statusFor(exception.getMessage()))
-                .body(Map.of("erro", exception.getMessage()));
+        String message = exception.getMessage() == null ? "Erro de regra de negocio" : exception.getMessage();
+        return ResponseEntity.status(statusFor(message))
+                .body(Map.of("erro", message));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -27,6 +29,12 @@ public class ApiExceptionHandler {
         }
 
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, String>> handleDataAccess() {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("erro", "Banco de dados indisponivel. Verifique se o MongoDB esta em execucao."));
     }
 
     private HttpStatus statusFor(String message) {

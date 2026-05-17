@@ -1,5 +1,7 @@
 package com.biblioteca.qs.Usuario;
 
+import com.biblioteca.qs.viacep.ViaCepClient;
+import com.biblioteca.qs.viacep.ViaCepResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,10 +12,12 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
+    private final ViaCepClient viaCepClient;
 
     public Usuario cadastrar(Usuario usuario) {
         usuario.setNome(usuario.getNome().trim());
         usuario.setEmail(normalizarEmail(usuario.getEmail()));
+        preencherEnderecoQuandoCepInformado(usuario);
 
         if (repository.findByEmail(usuario.getEmail()).isPresent()) {
             throw new IllegalArgumentException("E-mail ja cadastrado");
@@ -41,5 +45,18 @@ public class UsuarioService {
 
     private String normalizarEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private void preencherEnderecoQuandoCepInformado(Usuario usuario) {
+        if (usuario.getCep() == null || usuario.getCep().isBlank()) {
+            return;
+        }
+
+        ViaCepResponse endereco = viaCepClient.buscarEnderecoPorCep(usuario.getCep());
+        usuario.setCep(endereco.cep());
+        usuario.setLogradouro(endereco.logradouro());
+        usuario.setBairro(endereco.bairro());
+        usuario.setLocalidade(endereco.localidade());
+        usuario.setUf(endereco.uf());
     }
 }

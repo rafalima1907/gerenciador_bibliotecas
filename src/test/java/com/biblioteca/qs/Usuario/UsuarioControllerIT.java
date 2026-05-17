@@ -1,5 +1,7 @@
 package com.biblioteca.qs.Usuario;
 
+import com.biblioteca.qs.viacep.ViaCepResponse;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +14,15 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "viacep.api.base-url=http://localhost:8089/ws"
+)
 @Testcontainers
+@WireMockTest(httpPort = 8089)
 class UsuarioControllerIT {
 
     @Container
@@ -68,6 +75,33 @@ class UsuarioControllerIT {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).contains("E-mail deve ter formato valido");
+    }
+
+    @Test
+    void deveConsultarEnderecoPorCepViaApi() {
+        stubFor(get(urlEqualTo("/ws/01001000/json/"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "cep": "01001-000",
+                                  "logradouro": "Praca da Se",
+                                  "bairro": "Se",
+                                  "localidade": "Sao Paulo",
+                                  "uf": "SP"
+                                }
+                                """)));
+
+        ResponseEntity<ViaCepResponse> response =
+                restTemplate.getForEntity("/api/usuarios/cep/01001000", ViaCepResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().logradouro()).isEqualTo("Praca da Se");
+        assertThat(response.getBody().bairro()).isEqualTo("Se");
+        assertThat(response.getBody().localidade()).isEqualTo("Sao Paulo");
+        assertThat(response.getBody().uf()).isEqualTo("SP");
     }
 
     private Usuario usuario(String nome, String email, String senha) {

@@ -72,6 +72,15 @@ class UsuarioServiceIT {
                 .hasMessageContaining("E-mail ja cadastrado");
     }
 
+    @Test
+    void deveAutenticarNormalizandoEmailComEspacosEMaiusculas() {
+        usuarioService.cadastrar(usuario("Teste", "normalizado@email.com", "Senha123!"));
+
+        Usuario autenticado = usuarioService.autenticar(" NORMALIZADO@EMAIL.COM ", "Senha123!");
+
+        assertThat(autenticado.getEmail()).isEqualTo("normalizado@email.com");
+    }
+
     private Usuario usuario(String nome, String email, String senha) {
         Usuario usuario = new Usuario();
         usuario.setNome(nome);

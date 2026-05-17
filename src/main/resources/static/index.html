@@ -132,6 +132,30 @@
       gap: 8px;
     }
 
+    .auth-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .auth-switch button {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--line);
+    }
+
+    .auth-switch button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .address-grid {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 12px;
+    }
+
     .message {
       min-height: 24px;
       color: var(--muted);
@@ -189,19 +213,52 @@
 
   <main>
     <section id="authPanel" class="panel stack">
-      <form id="authForm" class="stack">
-        <label>Nome
-          <input id="nome" autocomplete="name" maxlength="80">
-        </label>
+      <div class="auth-switch">
+        <button id="showLoginButton" class="active" type="button">Login</button>
+        <button id="showRegisterButton" type="button">Cadastro</button>
+      </div>
+
+      <form id="loginForm" class="stack">
         <label>E-mail
-          <input id="email" type="email" autocomplete="email" required>
+          <input id="loginEmail" type="email" autocomplete="email" required>
         </label>
         <label>Senha
-          <input id="senha" type="password" autocomplete="current-password" minlength="8" required>
+          <input id="loginSenha" type="password" autocomplete="current-password" required>
         </label>
         <div class="actions">
-          <button id="loginButton" type="submit">Entrar</button>
-          <button id="registerButton" class="secondary" type="button">Cadastrar</button>
+          <button type="submit">Entrar</button>
+        </div>
+      </form>
+
+      <form id="registerForm" class="stack hidden">
+        <label>Nome
+          <input id="registerNome" autocomplete="name" maxlength="80" required>
+        </label>
+        <label>E-mail
+          <input id="registerEmail" type="email" autocomplete="email" required>
+        </label>
+        <label>Senha
+          <input id="registerSenha" type="password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <label>CEP
+          <input id="cep" autocomplete="postal-code" maxlength="9" inputmode="numeric">
+        </label>
+        <label>Rua
+          <input id="logradouro" readonly>
+        </label>
+        <label>Bairro
+          <input id="bairro" readonly>
+        </label>
+        <div class="address-grid">
+          <label>Cidade
+            <input id="localidade" readonly>
+          </label>
+          <label>UF
+            <input id="uf" readonly maxlength="2">
+          </label>
+        </div>
+        <div class="actions">
+          <button type="submit">Cadastrar</button>
         </div>
       </form>
       <p id="authMessage" class="message"></p>
@@ -248,6 +305,10 @@
     const currentUser = document.querySelector("#currentUser");
     const logoutButton = document.querySelector("#logoutButton");
     const booksBody = document.querySelector("#booksBody");
+    const loginForm = document.querySelector("#loginForm");
+    const registerForm = document.querySelector("#registerForm");
+    const showLoginButton = document.querySelector("#showLoginButton");
+    const showRegisterButton = document.querySelector("#showRegisterButton");
 
     const jsonHeaders = { "Content-Type": "application/json" };
 
@@ -268,12 +329,71 @@
       return body;
     }
 
-    function authPayload() {
+    function loginPayload() {
       return {
-        nome: document.querySelector("#nome").value,
-        email: document.querySelector("#email").value,
-        senha: document.querySelector("#senha").value
+        email: document.querySelector("#loginEmail").value,
+        senha: document.querySelector("#loginSenha").value
       };
+    }
+
+    function registerPayload() {
+      return {
+        nome: document.querySelector("#registerNome").value,
+        email: document.querySelector("#registerEmail").value,
+        senha: document.querySelector("#registerSenha").value,
+        cep: document.querySelector("#cep").value,
+        logradouro: document.querySelector("#logradouro").value,
+        bairro: document.querySelector("#bairro").value,
+        localidade: document.querySelector("#localidade").value,
+        uf: document.querySelector("#uf").value
+      };
+    }
+
+    function showLogin() {
+      loginForm.classList.remove("hidden");
+      registerForm.classList.add("hidden");
+      showLoginButton.classList.add("active");
+      showRegisterButton.classList.remove("active");
+      authMessage.textContent = "";
+    }
+
+    function showRegister() {
+      registerForm.classList.remove("hidden");
+      loginForm.classList.add("hidden");
+      showRegisterButton.classList.add("active");
+      showLoginButton.classList.remove("active");
+      authMessage.textContent = "";
+    }
+
+    function fillAddress(address) {
+      document.querySelector("#cep").value = address.cep || document.querySelector("#cep").value;
+      document.querySelector("#logradouro").value = address.logradouro || "";
+      document.querySelector("#bairro").value = address.bairro || "";
+      document.querySelector("#localidade").value = address.localidade || "";
+      document.querySelector("#uf").value = address.uf || "";
+    }
+
+    function clearAddress() {
+      fillAddress({ cep: document.querySelector("#cep").value });
+    }
+
+    async function loadAddressByCep() {
+      const cep = document.querySelector("#cep").value.replace(/\D/g, "");
+
+      if (cep.length < 8) {
+        clearAddress();
+        return;
+      }
+
+      try {
+        authMessage.textContent = "Consultando CEP...";
+        const address = await request(`/api/usuarios/cep/${cep}`);
+        fillAddress(address);
+        authMessage.textContent = "";
+      } catch (error) {
+        clearAddress();
+        authMessage.textContent = error.message;
+      }
     }
 
     function bookPayload() {
@@ -350,13 +470,12 @@
       await loadBooks();
     }
 
-    document.querySelector("#authForm").addEventListener("submit", async (event) => {
+    loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       try {
-        const { email, senha } = authPayload();
         const user = await request("/api/auth/login", {
           method: "POST",
-          body: JSON.stringify({ email, senha })
+          body: JSON.stringify(loginPayload())
         });
         authMessage.textContent = "";
         showApp(user);
@@ -365,11 +484,12 @@
       }
     });
 
-    document.querySelector("#registerButton").addEventListener("click", async () => {
+    registerForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
       try {
         const user = await request("/api/auth/register", {
           method: "POST",
-          body: JSON.stringify(authPayload())
+          body: JSON.stringify(registerPayload())
         });
         authMessage.textContent = "";
         showApp(user);
@@ -395,6 +515,21 @@
     });
 
     document.querySelector("#clearBookButton").addEventListener("click", clearBook);
+    showLoginButton.addEventListener("click", showLogin);
+    showRegisterButton.addEventListener("click", showRegister);
+    document.querySelector("#cep").addEventListener("blur", loadAddressByCep);
+    document.querySelector("#cep").addEventListener("input", async () => {
+      const cepInput = document.querySelector("#cep");
+      const digits = cepInput.value.replace(/\D/g, "").slice(0, 8);
+      cepInput.value = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+
+      if (digits.length === 8) {
+        await loadAddressByCep();
+      } else {
+        clearAddress();
+      }
+    });
+
     logoutButton.addEventListener("click", async () => {
       await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
       showAuth();

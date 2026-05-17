@@ -24,4 +24,14 @@ public class Usuario {
     @NotBlank(message = "Senha e obrigatoria")
     @Size(min = 8, message = "Senha deve ter ao menos 8 caracteres")
     private String senha;
+
+    private String cep;
+
+    private String logradouro;
+
+    private String bairro;
+
+    private String localidade;
+
+    private String uf;
 }

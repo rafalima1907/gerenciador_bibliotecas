@@ -86,7 +86,9 @@ class LivroServiceIT {
     @ParameterizedTest
     @NullAndEmptySource
     void deveRejeitarIsbnNuloOuVazio(String isbn) {
-        assertThatThrownBy(() -> livroService.cadastrar(livro("Livro invalido", "Autor", isbn), USER_ID))
+        Livro livro = livro("Livro invalido", "Autor", isbn);
+
+        assertThatThrownBy(() -> livroService.cadastrar(livro, USER_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN deve conter 10 ou 13 digitos validos");
     }
@@ -94,8 +96,9 @@ class LivroServiceIT {
     @Test
     void deveRejeitarIsbnDuplicadoParaOMesmoUsuario() {
         livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"), USER_ID);
+        Livro livroDuplicado = livro("Livro 2", "Autor", "9788580555332");
 
-        assertThatThrownBy(() -> livroService.cadastrar(livro("Livro 2", "Autor", "9788580555332"), USER_ID))
+        assertThatThrownBy(() -> livroService.cadastrar(livroDuplicado, USER_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN ja cadastrado");
     }
@@ -124,9 +127,9 @@ class LivroServiceIT {
     void deveRejeitarAtualizacaoComIsbnDeOutroLivroDoMesmoUsuario() {
         Livro primeiro = livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"), USER_ID);
         livroService.cadastrar(livro("Livro 2", "Autor", "9780134685991"), USER_ID);
+        Livro livroAtualizado = livro("Livro 1", "Autor", "9780134685991");
 
-        assertThatThrownBy(
-                () -> livroService.atualizar(primeiro.getId(), livro("Livro 1", "Autor", "9780134685991"), USER_ID))
+        assertThatThrownBy(() -> livroService.atualizar(primeiro.getId(), livroAtualizado, USER_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN ja cadastrado");
     }

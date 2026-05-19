@@ -73,7 +73,10 @@ class LivroControllerIT {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotNull();
         assertThat(response.getBody().getIsbn()).isEqualTo("9788580555332");
-        assertThat(response.getBody().getUsuarioId()).isNotNull();
+        assertThat(repository.findById(response.getBody().getId()))
+                .get()
+                .extracting(Livro::getUsuarioId)
+                .isNotNull();
     }
 
     @Test

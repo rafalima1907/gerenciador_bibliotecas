@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -487,6 +488,7 @@
     }
 
     @media (max-width: 520px) {
+
       .auth-card h1,
       .view-title {
         font-size: 2.25rem;
@@ -506,6 +508,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="app">
     <aside class="sidebar" aria-label="Navegacao principal">
@@ -525,20 +528,49 @@
           <h1>Login</h1>
           <form id="authForm" class="stack">
             <label>
-              Nome
-              <input id="nome" autocomplete="name" maxlength="80" placeholder="Nome">
-            </label>
-            <label>
               E-mail
               <input id="email" type="email" autocomplete="email" required placeholder="E-mail">
             </label>
             <label>
               Senha
-              <input id="senha" type="password" autocomplete="current-password" minlength="8" required placeholder="Senha">
+              <input id="senha" type="password" autocomplete="current-password" minlength="8" required
+                placeholder="Senha">
             </label>
+
+            <div id="registerFields" class="stack hidden">
+              <label>
+                Nome
+                <input id="nome" autocomplete="name" maxlength="80" placeholder="Seu nome completo">
+              </label>
+              <div style="display: grid; grid-template-columns: 1fr 80px; gap: 16px;">
+                <label>
+                  CEP
+                  <input id="cep" maxlength="9" placeholder="00000-000">
+                </label>
+                <label>
+                  UF
+                  <input id="uf" maxlength="2" placeholder="SP">
+                </label>
+              </div>
+              <label>
+                Logradouro
+                <input id="logradouro" placeholder="Rua, Avenida...">
+              </label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <label>
+                  Bairro
+                  <input id="bairro" placeholder="Bairro">
+                </label>
+                <label>
+                  Cidade
+                  <input id="cidade" placeholder="Cidade">
+                </label>
+              </div>
+            </div>
+
             <div class="actions auth-actions">
-              <button id="loginButton" type="submit">Entrar</button>
-              <button id="registerButton" class="secondary" type="button">Cadastrar</button>
+              <button id="mainAuthButton" type="submit">Entrar</button>
+              <button id="toggleAuthButton" class="ghost" type="button">Criar uma conta</button>
             </div>
           </form>
           <p id="authMessage" class="message" role="status"></p>
@@ -636,6 +668,7 @@
     let books = [];
     let currentUser = null;
     let selectedBook = null;
+    let isLoginMode = true; // Controle de estado para a tela de autenticacao
 
     async function request(url, options = {}) {
       const response = await fetch(url, {
@@ -676,11 +709,21 @@
     }
 
     function authPayload() {
-      return {
-        nome: document.querySelector("#nome").value.trim(),
+      const payload = {
         email: document.querySelector("#email").value.trim(),
         senha: document.querySelector("#senha").value
       };
+
+      if (!isLoginMode) {
+        payload.nome = document.querySelector("#nome").value.trim();
+        payload.cep = document.querySelector("#cep").value.replace(/\D/g, "");
+        payload.logradouro = document.querySelector("#logradouro").value.trim();
+        payload.bairro = document.querySelector("#bairro").value.trim();
+        payload.cidade = document.querySelector("#cidade").value.trim();
+        payload.uf = document.querySelector("#uf").value.trim();
+      }
+
+      return payload;
     }
 
     function bookPayload() {
@@ -859,33 +902,64 @@
       }
     }
 
+    // --- EVENT LISTENERS DA TELA DE AUTENTICAÇÃO ---
+
+    // Alternar entre Login e Cadastro
+    document.querySelector("#toggleAuthButton").addEventListener("click", () => {
+      isLoginMode = !isLoginMode;
+      document.querySelector("#registerFields").classList.toggle("hidden", isLoginMode);
+      document.querySelector("#authView h1").textContent = isLoginMode ? "Login" : "Criar Conta";
+      document.querySelector("#mainAuthButton").textContent = isLoginMode ? "Entrar" : "Cadastrar";
+      document.querySelector("#toggleAuthButton").textContent = isLoginMode ? "Criar uma conta" : "Voltar para Login";
+
+      document.querySelector("#nome").required = !isLoginMode;
+      setMessage(authMessage);
+    });
+
+    // Busca na API do ViaCEP
+    document.querySelector("#cep").addEventListener("blur", async (event) => {
+      const cep = event.target.value.replace(/\D/g, "");
+      if (cep.length !== 8) return;
+
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+
+        if (!data.erro) {
+          document.querySelector("#logradouro").value = data.logradouro || "";
+          document.querySelector("#bairro").value = data.bairro || "";
+          document.querySelector("#cidade").value = data.localidade || "";
+          document.querySelector("#uf").value = data.uf || "";
+        } else {
+          setMessage(authMessage, "CEP não encontrado.", true);
+        }
+      } catch (error) {
+        setMessage(authMessage, "Erro ao consultar o CEP.", true);
+      }
+    });
+
+    // Envio do formulario (Login ou Cadastro)
     document.querySelector("#authForm").addEventListener("submit", async (event) => {
       event.preventDefault();
+      const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
+
       try {
-        const { email, senha } = authPayload();
-        const user = await request("/api/auth/login", {
+        const user = await request(endpoint, {
           method: "POST",
-          body: JSON.stringify({ email, senha })
+          body: JSON.stringify(authPayload())
         });
         setMessage(authMessage);
+
+        // Limpa os dados do formulário de autenticação
+        document.querySelector("#authForm").reset();
+
         showApp(user);
       } catch (error) {
         setMessage(authMessage, error.message, true);
       }
     });
 
-    document.querySelector("#registerButton").addEventListener("click", async () => {
-      try {
-        const user = await request("/api/auth/register", {
-          method: "POST",
-          body: JSON.stringify(authPayload())
-        });
-        setMessage(authMessage);
-        showApp(user);
-      } catch (error) {
-        setMessage(authMessage, error.message, true);
-      }
-    });
+    // --- OUTROS EVENT LISTENERS ---
 
     document.querySelector("#bookForm").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -928,7 +1002,9 @@
       showAuth();
     });
 
+    // Inicialização
     request("/api/auth/me").then(showApp).catch(showAuth);
   </script>
 </body>
+
 </html>

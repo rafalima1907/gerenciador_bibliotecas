@@ -28,4 +28,6 @@ public class Livro {
 
     @NotBlank(message = "ISBN e obrigatorio")
     private String isbn;
+    
+    private String usuarioId;
 }

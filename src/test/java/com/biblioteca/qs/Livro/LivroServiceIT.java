@@ -29,48 +29,42 @@ class LivroServiceIT {
     @Autowired
     private LivroRepository repository;
 
+    private static final String USER_ID = "user123";
+
     @BeforeEach
     void limparBase() {
         repository.deleteAll();
     }
 
     @Test
-    void deveCadastrarEListarLivros() {
-        Livro livro = Livro.builder()
-                .titulo("Livro Service Test")
-                .autor("Autor")
-                .isbn("9788580555332")
-                .build();
+    void deveCadastrarEListarLivrosDoUsuario() {
+        Livro livro = livro("Livro Service Test", "Autor", "9788580555332");
 
-        Livro salvo = livroService.cadastrar(livro);
+        Livro salvo = livroService.cadastrar(livro, USER_ID);
+
         assertThat(salvo.getId()).isNotNull();
-        assertThat(livroService.findAll()).isNotEmpty();
+        assertThat(salvo.getUsuarioId()).isEqualTo(USER_ID);
+        assertThat(livroService.findAll(USER_ID)).isNotEmpty();
+
+        assertThat(livroService.findAll("outro_usuario")).isEmpty();
     }
 
     @Test
     void deveNormalizarIsbnAntesDePersistir() {
-        Livro livro = Livro.builder()
-                .titulo("Livro com hifen")
-                .autor("Autor")
-                .isbn("978-85-8055-533-2")
-                .build();
-
-        Livro salvo = livroService.cadastrar(livro);
-
+        Livro livro = livro("Livro com hifen", "Autor", "978-85-8055-533-2");
+        Livro salvo = livroService.cadastrar(livro, USER_ID);
         assertThat(salvo.getIsbn()).isEqualTo("9788580555332");
     }
 
     @Test
     void deveAceitarIsbn10ComXFinal() {
-        Livro salvo = livroService.cadastrar(livro("Livro ISBN 10", "Autor", "0-306-40615-x"));
-
+        Livro salvo = livroService.cadastrar(livro("Livro ISBN 10", "Autor", "0-306-40615-x"), USER_ID);
         assertThat(salvo.getIsbn()).isEqualTo("030640615X");
     }
 
     @Test
     void deveAceitarIsbn10ApenasNumerico() {
-        Livro salvo = livroService.cadastrar(livro("Livro ISBN 10 numerico", "Autor", "0306406152"));
-
+        Livro salvo = livroService.cadastrar(livro("Livro ISBN 10 numerico", "Autor", "0306406152"), USER_ID);
         assertThat(salvo.getIsbn()).isEqualTo("0306406152");
     }
 
@@ -82,13 +76,9 @@ class LivroServiceIT {
             "12345678X0"
     })
     void deveRejeitarIsbnInvalido(String isbn) {
-        Livro livro = Livro.builder()
-                .titulo("Livro invalido")
-                .autor("Autor")
-                .isbn(isbn)
-                .build();
+        Livro livro = livro("Livro invalido", "Autor", isbn);
 
-        assertThatThrownBy(() -> livroService.cadastrar(livro))
+        assertThatThrownBy(() -> livroService.cadastrar(livro, USER_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN deve conter 10 ou 13 digitos validos");
     }
@@ -96,25 +86,34 @@ class LivroServiceIT {
     @ParameterizedTest
     @NullAndEmptySource
     void deveRejeitarIsbnNuloOuVazio(String isbn) {
-        assertThatThrownBy(() -> livroService.cadastrar(livro("Livro invalido", "Autor", isbn)))
+        assertThatThrownBy(() -> livroService.cadastrar(livro("Livro invalido", "Autor", isbn), USER_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN deve conter 10 ou 13 digitos validos");
     }
 
     @Test
-    void deveRejeitarIsbnDuplicado() {
-        livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"));
+    void deveRejeitarIsbnDuplicadoParaOMesmoUsuario() {
+        livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"), USER_ID);
 
-        assertThatThrownBy(() -> livroService.cadastrar(livro("Livro 2", "Autor", "9788580555332")))
+        assertThatThrownBy(() -> livroService.cadastrar(livro("Livro 2", "Autor", "9788580555332"), USER_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN ja cadastrado");
     }
 
     @Test
-    void deveAtualizarLivroMantendoMesmoIsbn() {
-        Livro salvo = livroService.cadastrar(livro("Titulo antigo", "Autor", "9788580555332"));
+    void devePermitirMesmoIsbnParaUsuariosDiferentes() {
+        livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"), USER_ID);
+        Livro livroOutroUsuario = livroService.cadastrar(livro("Livro 2", "Autor", "9788580555332"), "outroUser");
 
-        Livro atualizado = livroService.atualizar(salvo.getId(), livro("Titulo novo", "Autor novo", "9788580555332"));
+        assertThat(livroOutroUsuario.getId()).isNotNull();
+    }
+
+    @Test
+    void deveAtualizarLivroMantendoMesmoIsbn() {
+        Livro salvo = livroService.cadastrar(livro("Titulo antigo", "Autor", "9788580555332"), USER_ID);
+
+        Livro atualizado = livroService.atualizar(salvo.getId(), livro("Titulo novo", "Autor novo", "9788580555332"),
+                USER_ID);
 
         assertThat(atualizado.getId()).isEqualTo(salvo.getId());
         assertThat(atualizado.getTitulo()).isEqualTo("Titulo novo");
@@ -122,11 +121,12 @@ class LivroServiceIT {
     }
 
     @Test
-    void deveRejeitarAtualizacaoComIsbnDeOutroLivro() {
-        Livro primeiro = livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"));
-        livroService.cadastrar(livro("Livro 2", "Autor", "9780134685991"));
+    void deveRejeitarAtualizacaoComIsbnDeOutroLivroDoMesmoUsuario() {
+        Livro primeiro = livroService.cadastrar(livro("Livro 1", "Autor", "9788580555332"), USER_ID);
+        livroService.cadastrar(livro("Livro 2", "Autor", "9780134685991"), USER_ID);
 
-        assertThatThrownBy(() -> livroService.atualizar(primeiro.getId(), livro("Livro 1", "Autor", "9780134685991")))
+        assertThatThrownBy(
+                () -> livroService.atualizar(primeiro.getId(), livro("Livro 1", "Autor", "9780134685991"), USER_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ISBN ja cadastrado");
     }

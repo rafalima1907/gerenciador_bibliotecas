@@ -11,25 +11,28 @@ public class LivroService {
 
     private final LivroRepository livroRepository;
 
-    public List<Livro> findAll() {
-        return livroRepository.findAll();
+    public List<Livro> findAll(String usuarioId) {
+        return livroRepository.findByUsuarioId(usuarioId);
     }
 
-    public Livro findById(String id) {
-        return livroRepository.findById(id)
+    public Livro findById(String id, String usuarioId) {
+        return livroRepository.findByIdAndUsuarioId(id, usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Livro nao encontrado"));
     }
 
-    public Livro cadastrar(Livro livro) {
+    public Livro cadastrar(Livro livro, String usuarioId) {
+        livro.setUsuarioId(usuarioId);
         prepararParaPersistencia(livro);
-        garantirIsbnUnico(livro.getIsbn(), null);
+        garantirIsbnUnico(livro.getIsbn(), null, usuarioId);
         return livroRepository.save(livro);
     }
 
-    public Livro atualizar(String id, Livro livro) {
-        Livro existente = findById(id);
+    public Livro atualizar(String id, Livro livro, String usuarioId) {
+        Livro existente = findById(id, usuarioId);
+        
+        livro.setUsuarioId(usuarioId);
         prepararParaPersistencia(livro);
-        garantirIsbnUnico(livro.getIsbn(), id);
+        garantirIsbnUnico(livro.getIsbn(), id, usuarioId);
 
         existente.setTitulo(livro.getTitulo());
         existente.setAutor(livro.getAutor());
@@ -38,8 +41,8 @@ public class LivroService {
         return livroRepository.save(existente);
     }
 
-    public void excluir(String id) {
-        Livro existente = findById(id);
+    public void excluir(String id, String usuarioId) {
+        Livro existente = findById(id, usuarioId);
         livroRepository.delete(existente);
     }
 
@@ -99,8 +102,8 @@ public class LivroService {
         return Character.isDigit(caractere) || caractere == 'X';
     }
 
-    private void garantirIsbnUnico(String isbn, String idAtual) {
-        livroRepository.findByIsbn(isbn)
+    private void garantirIsbnUnico(String isbn, String idAtual, String usuarioId) {
+        livroRepository.findByIsbnAndUsuarioId(isbn, usuarioId)
                 .filter(livro -> idAtual == null || !livro.getId().equals(idAtual))
                 .ifPresent(livro -> {
                     throw new IllegalArgumentException("ISBN ja cadastrado");

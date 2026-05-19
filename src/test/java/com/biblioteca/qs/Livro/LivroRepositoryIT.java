@@ -33,22 +33,27 @@ class LivroRepositoryIT {
                 .titulo("Dom Casmurro")
                 .autor("Machado de Assis")
                 .isbn("9788535910663")
+                .usuarioId("user123")
                 .build();
 
         Livro salvo = repository.save(livro);
 
         assertThat(salvo.getId()).isNotNull();
         assertThat(salvo.getTitulo()).isEqualTo("Dom Casmurro");
+        assertThat(salvo.getUsuarioId()).isEqualTo("user123");
     }
 
     @Test
-    void deveBuscarLivroPorIsbn() {
+    void deveBuscarLivroPorIsbnEUsuarioId() {
         repository.save(Livro.builder()
                 .titulo("Engenharia de Software")
                 .autor("Pressman")
                 .isbn("9788580555332")
+                .usuarioId("user123")
                 .build());
 
-        assertThat(repository.findByIsbn("9788580555332")).isPresent();
+        assertThat(repository.findByIsbnAndUsuarioId("9788580555332", "user123")).isPresent();
+        
+        assertThat(repository.findByIsbnAndUsuarioId("9788580555332", "outroUser")).isEmpty();
     }
 }
